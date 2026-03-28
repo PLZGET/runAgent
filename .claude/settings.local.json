@@ -13,7 +13,8 @@
       "Bash(git -C C:/TraeHackerton/codexProject show a447f95 --stat)",
       "Bash(git -C C:/TraeHackerton/codexProject show a447f95 -- backend/app/engine.py)",
       "Bash(git -C C:/TraeHackerton/codexProject show cef6667 --stat)",
-      "Bash(git -C C:/TraeHackerton/codexProject show cef6667 -- backend/app/engine.py)"
+      "Bash(git -C C:/TraeHackerton/codexProject show cef6667 -- backend/app/engine.py)",
+      "Bash(ls C:/TraeHackerton/codexProject/.env*)"
     ]
   }
 }

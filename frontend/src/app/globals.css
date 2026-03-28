@@ -1501,6 +1501,58 @@ button {
   word-break: break-all;
 }
 
+.mission-callout-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+.mission-callout-head .eyebrow {
+  margin: 0;
+}
+
+.ai-processing-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border: 2px solid rgba(74, 222, 128, 0.38);
+  border-radius: 3px;
+  background: rgba(74, 222, 128, 0.12);
+  color: #4ade80;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-family: "Consolas", "Courier New", monospace;
+  animation: aiBadgePulse 1.8s ease-in-out infinite;
+}
+
+.ai-processing-badge::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.9);
+  animation: aiBadgePulse 1.8s ease-in-out infinite;
+}
+
+.elapsed-timer {
+  margin: 10px 0 0;
+  color: rgba(255, 248, 238, 0.54);
+  font-size: 0.86rem;
+  font-family: "Consolas", "Courier New", monospace;
+  letter-spacing: 0.04em;
+}
+
+@keyframes aiBadgePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.52; }
+}
+
 @keyframes floatAgent {
   0%,
   100% {

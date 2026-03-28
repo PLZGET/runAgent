@@ -16,5 +16,5 @@ venv/
 .env
 .env.local
 
-.claude
+.claude/
 

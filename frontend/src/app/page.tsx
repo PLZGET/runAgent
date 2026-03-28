@@ -107,6 +107,7 @@ type AgentPrepItem = {
   label: string;
   detail: string;
   console: string[];
+  isAi?: boolean;
 };
 
 type AgentMode = "briefing" | "launching" | "running" | "replaying" | "ready";
@@ -506,38 +507,46 @@ const AGENT_PREP_STEPS: AgentPrepItem[] = [
   {
     label: "프로필 구조화",
     detail: "대화에서 연차, 현재 연봉, 목표 역할, 리스크 포인트를 JSON 스냅샷으로 잠그는 중",
-    console: [
-      "draft.lock.profile = true",
-      "resignation_risk_matrix -> seeded",
-      "salary_delta_target -> computed",
-    ],
+    console: ["draft.lock.profile = true", "resignation_risk_matrix -> seeded", "salary_delta_target -> computed"],
   },
   {
     label: "브라우저 세션 부팅",
     detail: "채용 사이트 탐색에 쓸 질의와 필터를 준비하고 브라우저 작업 큐를 여는 중",
-    console: [
-      "browser.session -> warming",
-      "query.role -> normalized",
-      "search.intent -> market_scan",
-    ],
+    console: ["browser.session -> warming", "query.role -> normalized", "search.intent -> market_scan"],
+  },
+  {
+    label: "GPT 퇴사 진단 중",
+    detail: "GPT-4o-mini가 퇴사 시점 리스크, 재정 여유, 시장 신호를 종합해 판단 레이어를 생성하는 중",
+    console: ["gpt.model -> gpt-4o-mini", "diagnosis.timing_risk -> analyzing", "diagnosis.financial_buffer -> evaluating"],
+    isAi: true,
   },
   {
     label: "시장 탐색 큐 정리",
     detail: "공고 수집, 중복 제거, 보상 범위 정규화 로직을 순서대로 실행하는 중",
-    console: [
-      "jobs.collect -> queued",
-      "dedupe.hash -> enabled",
-      "salary_band -> normalized",
-    ],
+    console: ["jobs.collect -> queued", "dedupe.hash -> enabled", "salary_band -> normalized"],
+  },
+  {
+    label: "GPT 공고 매칭 분석",
+    detail: "GPT-4o-mini가 수집된 공고와 프로필 스킬셋을 비교해 매칭 점수와 연봉 갭을 계산하는 중",
+    console: ["gpt.model -> gpt-4o-mini", "job_match.scoring -> running", "salary_gap.delta -> computing"],
+    isAi: true,
+  },
+  {
+    label: "사직서 초안 생성 중",
+    detail: "GPT-4o-mini가 퇴사 이유와 재직 기간을 바탕으로 사직서 문서 초안을 작성하는 중",
+    console: ["gpt.model -> gpt-4o-mini", "document.resignation_letter -> drafting", "tone.formal_kr -> applied"],
+    isAi: true,
+  },
+  {
+    label: "이직 체크리스트 생성 중",
+    detail: "프로필 조건에 맞는 이직 준비 체크리스트를 GPT-4o-mini가 항목별로 구성하는 중",
+    console: ["gpt.model -> gpt-4o-mini", "checklist.items -> generating", "priority.order -> ranked_by_risk"],
+    isAi: true,
   },
   {
     label: "리포트 패키지 생성",
     detail: "추천 공고와 퇴사 문서를 한 번에 보여줄 결과 패키지를 조립하는 중",
-    console: [
-      "report.compose -> started",
-      "documents.bundle -> assembling",
-      "delivery.channel -> dashboard",
-    ],
+    console: ["report.compose -> started", "documents.bundle -> assembling", "delivery.channel -> dashboard"],
   },
 ];
 
@@ -598,7 +607,7 @@ function currentMissionStage(mode: AgentMode, loadingIndex: number, activePhase:
   }
 
   if (mode === "running") {
-    return Math.min(loadingIndex, 3);
+    return Math.min(Math.floor(loadingIndex / 2), 3);
   }
 
   if (mode === "ready") {
@@ -704,6 +713,7 @@ export default function HomePage() {
   const [activeDocumentIndex, setActiveDocumentIndex] = useState(0);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [error, setError] = useState("");
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   const manualInputRef = useRef<HTMLInputElement | null>(null);
   const nextMessageIdRef = useRef(4);
@@ -739,11 +749,22 @@ export default function HomePage() {
 
     const interval = window.setInterval(() => {
       setLoadingIndex((current) => (current + 1) % AGENT_PREP_STEPS.length);
-    }, 850);
+    }, 1400);
 
     return () => {
       window.clearInterval(interval);
     };
+  }, [agentMode]);
+
+  useEffect(() => {
+    if (agentMode !== "running") {
+      setElapsedSeconds(0);
+      return;
+    }
+    const interval = window.setInterval(() => {
+      setElapsedSeconds((s) => s + 1);
+    }, 1000);
+    return () => window.clearInterval(interval);
   }, [agentMode]);
 
   useEffect(() => {
@@ -1185,9 +1206,17 @@ export default function HomePage() {
                 </div>
 
                 <div className="mission-callout">
-                  <p className="eyebrow">Current Mission</p>
+                  <div className="mission-callout-head">
+                    <p className="eyebrow">Current Mission</p>
+                    {agentMode === "running" && AGENT_PREP_STEPS[loadingIndex].isAi ? (
+                      <span className="ai-processing-badge">AI PROCESSING</span>
+                    ) : null}
+                  </div>
                   <h3>{missionHeadline}</h3>
                   <p>{missionDetail}</p>
+                  {agentMode === "running" ? (
+                    <p className="elapsed-timer">분석 중... {elapsedSeconds}초</p>
+                  ) : null}
                 </div>
               </div>
 
