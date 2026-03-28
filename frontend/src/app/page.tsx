@@ -707,6 +707,7 @@ export default function HomePage() {
   const [inputValue, setInputValue] = useState("");
   const [manualEntryOpen, setManualEntryOpen] = useState(false);
   const [result, setResult] = useState<AnalysisResponse | null>(null);
+  const [pendingResult, setPendingResult] = useState<AnalysisResponse | null>(null);
   const [agentMode, setAgentMode] = useState<AgentMode>("briefing");
   const [loadingIndex, setLoadingIndex] = useState(0);
   const [activeEventIndex, setActiveEventIndex] = useState(-1);
@@ -743,18 +744,34 @@ export default function HomePage() {
   }, [manualEntryOpen, currentStepIndex]);
 
   useEffect(() => {
-    if (agentMode !== "running") {
-      return;
-    }
+    if (agentMode !== "running") return;
+    if (loadingIndex >= AGENT_PREP_STEPS.length - 1) return;
+
+    const speed = pendingResult ? 400 : 1400;
 
     const interval = window.setInterval(() => {
-      setLoadingIndex((current) => (current + 1) % AGENT_PREP_STEPS.length);
-    }, 1400);
+      setLoadingIndex((current) =>
+        current >= AGENT_PREP_STEPS.length - 1 ? current : current + 1
+      );
+    }, speed);
 
     return () => {
       window.clearInterval(interval);
     };
-  }, [agentMode]);
+  }, [agentMode, loadingIndex, pendingResult]);
+
+  useEffect(() => {
+    if (agentMode !== "running") return;
+    if (loadingIndex < AGENT_PREP_STEPS.length - 1) return;
+    if (!pendingResult) return;
+
+    startTransition(() => {
+      setResult(pendingResult);
+      setPendingResult(null);
+      setAgentMode("replaying");
+      setActiveEventIndex(-1);
+    });
+  }, [agentMode, loadingIndex, pendingResult]);
 
   useEffect(() => {
     if (agentMode !== "running") {
@@ -976,6 +993,7 @@ export default function HomePage() {
     setAgentMode("launching");
     setLoadingIndex(0);
     setResult(null);
+    setPendingResult(null);
     setActiveEventIndex(-1);
     summaryInjectedRef.current = false;
 
@@ -1004,12 +1022,7 @@ export default function HomePage() {
       }
 
       const payload: AnalysisResponse = await response.json();
-
-      startTransition(() => {
-        setResult(payload);
-        setAgentMode("replaying");
-        setActiveEventIndex(-1);
-      });
+      setPendingResult(payload);
     } catch {
       const mockPayload = buildMockResponse(profileDraft);
 
@@ -1019,11 +1032,7 @@ export default function HomePage() {
         "데모 모드"
       );
 
-      startTransition(() => {
-        setResult(mockPayload);
-        setAgentMode("replaying");
-        setActiveEventIndex(-1);
-      });
+      setPendingResult(mockPayload);
     }
   }
 
