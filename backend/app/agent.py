@@ -55,8 +55,10 @@ def generate_diagnosis(
   "timing_recommendation": "퇴사 타이밍 조언 (근속 {tenure_months}개월 기준 퇴직금·성과급 손익 포함)",
   "financial_risk": "재무 리스크 분석 (월 생활비, 공백 기간별 소득 손실 수치 포함)",
   "market_signal": "시장 신호 해석 (상위 공고 연봉 vs 현재 연봉 격차, 스킬 수요 포함)",
-  "action_summary": "지금 당장 해야 할 가장 중요한 액션 3가지 요약"
-}}"""
+  "action_summary": "지금 당장 해야 할 가장 중요한 액션 3가지를 하나의 문자열로 요약 (배열 금지, 줄바꿈 구분)"
+}}
+
+중요: 모든 값은 JSON 문자열이어야 합니다. 배열([ ])은 절대 사용하지 마세요."""
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",
@@ -66,6 +68,12 @@ def generate_diagnosis(
     )
 
     data = json.loads(response.choices[0].message.content)
+
+    # LLM이 문자열 대신 리스트를 반환하는 경우 방어 처리
+    for field in ("timing_recommendation", "financial_risk", "market_signal", "action_summary"):
+        if isinstance(data.get(field), list):
+            data[field] = "\n".join(str(item) for item in data[field])
+
     return Diagnosis(**data)
 
 
@@ -107,6 +115,12 @@ def generate_documents(
     )
 
     data = json.loads(response.choices[0].message.content)
+
+    # LLM이 문자열 대신 리스트를 반환하는 경우 방어 처리
+    for field in ("report", "letter", "checklist"):
+        if isinstance(data.get(field), list):
+            data[field] = "\n".join(str(item) for item in data[field])
+
     return [
         GeneratedDocument(title="퇴사 리포트", doc_type="report", content=data["report"]),
         GeneratedDocument(title="사직서 초안", doc_type="letter", content=data["letter"]),
