@@ -97,6 +97,13 @@ export default function ReportPage() {
     }
   }, []);
 
+  function handleOpenJob(url: string) {
+    const popup = window.open(url, "_blank", "noopener,noreferrer");
+    if (!popup) {
+      window.location.assign(url);
+    }
+  }
+
   if (!payload) {
     return (
       <main className="report-shell">
@@ -230,9 +237,13 @@ export default function ReportPage() {
                 </ul>
 
                 <div className="job-link-row">
-                  <a className="job-link-button" href={job.url} rel="noreferrer" target="_blank">
+                  <button
+                    className="job-link-button"
+                    type="button"
+                    onClick={() => handleOpenJob(job.url)}
+                  >
                     공고 열기
-                  </a>
+                  </button>
                   <span className="job-link-url">{job.url}</span>
                 </div>
               </article>

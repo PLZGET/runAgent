@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { type CSSProperties, FormEvent, startTransition, useEffect, useRef, useState } from "react";
 
 type BrowserEvent = {
@@ -111,8 +110,6 @@ type AgentPrepItem = {
 };
 
 type AgentMode = "briefing" | "launching" | "running" | "replaying" | "ready";
-
-const REPORT_STORAGE_KEY = "talchul-master-report";
 
 function formatDateInput(value: Date) {
   const year = value.getFullYear();
@@ -597,9 +594,8 @@ function AgentMascot({ className = "agent-mascot" }: { className?: string }) {
 }
 
 export default function HomePage() {
-  const router = useRouter();
   const [profileDraft, setProfileDraft] = useState<ProfileDraft>(INITIAL_PROFILE);
-  const [messages, setMessages] = useState<ConversationMessage[]>(buildInitialMessages(INITIAL_PROFILE));
+  const [, setMessages] = useState<ConversationMessage[]>(buildInitialMessages(INITIAL_PROFILE));
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [inputValue, setInputValue] = useState("");
   const [manualEntryOpen, setManualEntryOpen] = useState(false);
@@ -607,9 +603,10 @@ export default function HomePage() {
   const [agentMode, setAgentMode] = useState<AgentMode>("briefing");
   const [loadingIndex, setLoadingIndex] = useState(0);
   const [activeEventIndex, setActiveEventIndex] = useState(-1);
+  const [activeDocumentIndex, setActiveDocumentIndex] = useState(0);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [error, setError] = useState("");
 
-  const chatScrollRef = useRef<HTMLDivElement | null>(null);
   const manualInputRef = useRef<HTMLInputElement | null>(null);
   const nextMessageIdRef = useRef(4);
   const summaryInjectedRef = useRef(false);
@@ -630,17 +627,6 @@ export default function HomePage() {
   const questionGuide = manualEntryOpen
     ? "직접 입력창이 열려 있습니다. 값을 적고 답변 전송을 누르면 바로 다음 질문으로 넘어갑니다."
     : "예시 블록을 누르거나 마지막 직접 입력 블록을 열어서 답하면 됩니다.";
-
-  useEffect(() => {
-    if (!chatScrollRef.current) {
-      return;
-    }
-
-    chatScrollRef.current.scrollTo({
-      top: chatScrollRef.current.scrollHeight,
-      behavior: "smooth",
-    });
-  }, [messages.length]);
 
   useEffect(() => {
     if (manualEntryOpen) {
@@ -714,6 +700,12 @@ export default function HomePage() {
     ]);
   }, [agentMode, result]);
 
+  useEffect(() => {
+    if (agentMode === "ready" && result) {
+      setIsReportModalOpen(true);
+    }
+  }, [agentMode, result]);
+
   function appendMessage(role: ConversationMessage["role"], content: string, title?: string) {
     const nextId = nextMessageIdRef.current++;
 
@@ -740,6 +732,8 @@ export default function HomePage() {
     setAgentMode("briefing");
     setLoadingIndex(0);
     setActiveEventIndex(-1);
+    setActiveDocumentIndex(0);
+    setIsReportModalOpen(false);
     setError("");
     nextMessageIdRef.current = 4;
     summaryInjectedRef.current = false;
@@ -882,7 +876,7 @@ export default function HomePage() {
         body: JSON.stringify(profileDraft),
       });
 
-      await delay(3200);
+      await delay(4300);
       setAgentMode("running");
       const response = await responsePromise;
 
@@ -913,19 +907,18 @@ export default function HomePage() {
   }
 
   function handleOpenReport() {
-    if (!result) {
+    if (!result || agentMode !== "ready") {
       return;
     }
 
-    window.sessionStorage.setItem(
-      REPORT_STORAGE_KEY,
-      JSON.stringify({
-        profile: profileDraft,
-        result,
-        saved_at: Date.now(),
-      })
-    );
-    router.push("/report");
+    setIsReportModalOpen(true);
+  }
+
+  function handleOpenJob(url: string) {
+    const popup = window.open(url, "_blank", "noopener,noreferrer");
+    if (!popup) {
+      window.location.assign(url);
+    }
   }
 
   const missionConsole =
@@ -1118,10 +1111,10 @@ export default function HomePage() {
                   <div>
                     <p className="eyebrow">Report Gate</p>
                     <strong>실시간 공고 수집이 끝났습니다.</strong>
-                    <p>다음 페이지에서 추천 공고 링크, 진단 요약, 생성 문서를 확인할 수 있습니다.</p>
+                    <p>추천 공고 링크, 진단 요약, 생성 문서를 모달에서 바로 확인할 수 있습니다.</p>
                   </div>
                   <button className="primary-button" type="button" onClick={handleOpenReport}>
-                    결과 리포트 보러가기
+                    결과 리포트 열기
                   </button>
                 </div>
               ) : null}
@@ -1307,25 +1300,143 @@ export default function HomePage() {
             </div>
           )}
 
-          <div className="chat-thread" ref={chatScrollRef}>
-            <div className="chat-log-head">
-              <p className="eyebrow">Chat Log</p>
-              <strong>대화 기록</strong>
-            </div>
-            {messages.map((message) => (
-              <article className={`message-row ${message.role}`} key={message.id}>
-                {message.role === "agent" ? <div className="avatar-badge">토비</div> : null}
-                <div className={`message-bubble ${message.role}`}>
-                  {message.title ? <p className="message-title">{message.title}</p> : null}
-                  <p>{message.content}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-
           {error ? <p className="error-text">{error}</p> : null}
         </section>
       </section>
+
+      {isReportModalOpen && result ? (
+        <div
+          className="report-modal-backdrop"
+          onClick={() => setIsReportModalOpen(false)}
+          role="presentation"
+        >
+          <section
+            aria-modal="true"
+            className="report-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+          >
+            <div className="report-modal-topbar">
+              <div>
+                <p className="eyebrow">Result Modal</p>
+                <h2>퇴사 결과 리포트</h2>
+              </div>
+              <button
+                className="ghost-button modal-close"
+                type="button"
+                onClick={() => setIsReportModalOpen(false)}
+              >
+                닫기
+              </button>
+            </div>
+
+            <p className="report-summary">{result.profile_summary}</p>
+
+            <div className="metric-grid">
+              {result.metrics.map((metric) => (
+                <article className="metric-card" key={metric.label}>
+                  <span>{metric.label}</span>
+                  <strong>{metric.value}</strong>
+                  <p>{metric.detail}</p>
+                </article>
+              ))}
+            </div>
+
+            <div className="diagnosis-grid">
+              <article>
+                <h3>타이밍 분석</h3>
+                <p>{result.diagnosis.timing_recommendation}</p>
+              </article>
+              <article>
+                <h3>재무 리스크</h3>
+                <p>{result.diagnosis.financial_risk}</p>
+              </article>
+              <article>
+                <h3>시장 신호</h3>
+                <p>{result.diagnosis.market_signal}</p>
+              </article>
+              <article>
+                <h3>권장 액션</h3>
+                <p>{result.diagnosis.action_summary}</p>
+              </article>
+            </div>
+
+            <div className="job-list report-job-list">
+              {result.recommended_jobs.map((job) => (
+                <article className="job-card" key={`${job.company}-${job.title}`}>
+                  <div className="job-card-top">
+                    <div>
+                      <p className="job-company">{job.company}</p>
+                      <h3>{job.title}</h3>
+                      <span>
+                        {job.location} · {job.source}
+                      </span>
+                    </div>
+                    <div className="job-score">{job.match_score}점</div>
+                  </div>
+
+                  <div className="job-meta">
+                    <span>{formatSalaryRange(job.salary_min, job.salary_max)}</span>
+                    <span>{job.rating !== null ? `평점 ${job.rating.toFixed(1)}` : "평점 미제공"}</span>
+                    <span>
+                      연봉 변화 {job.salary_gap_percent > 0 ? "+" : ""}
+                      {job.salary_gap_percent}%
+                    </span>
+                  </div>
+
+                  <p className="job-review">{job.review_summary}</p>
+
+                  <div className="skill-ribbon compact">
+                    {job.skills.map((skill) => (
+                      <span key={skill}>{skill}</span>
+                    ))}
+                  </div>
+
+                  <ul className="reason-list">
+                    {job.reasons.map((reason) => (
+                      <li key={reason}>{reason}</li>
+                    ))}
+                  </ul>
+
+                  <div className="job-link-row">
+                    <button
+                      className="job-link-button"
+                      type="button"
+                      onClick={() => handleOpenJob(job.url)}
+                    >
+                      공고 보기
+                    </button>
+                    <span className="job-link-url">{job.url}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="document-tabs">
+              {result.documents.map((document, index) => (
+                <button
+                  className={index === activeDocumentIndex ? "active" : ""}
+                  key={document.title}
+                  type="button"
+                  onClick={() => setActiveDocumentIndex(index)}
+                >
+                  {document.title}
+                </button>
+              ))}
+            </div>
+
+            <pre className="document-viewer modal-document-viewer">
+              {result.documents[activeDocumentIndex]?.content}
+            </pre>
+
+            <div className="disclaimer-box">
+              {result.disclaimers.map((disclaimer) => (
+                <p key={disclaimer}>{disclaimer}</p>
+              ))}
+            </div>
+          </section>
+        </div>
+      ) : null}
     </main>
   );
 }

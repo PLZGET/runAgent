@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from datetime import date, datetime
 from statistics import mean
 from typing import Any, Iterable, List
 
+from .agent import generate_diagnosis, generate_documents
 from .live_jobs import fetch_live_jobs
 from .models import (
     AnalysisResponse,
@@ -53,54 +55,9 @@ def _effective_average_salary(job: dict[str, Any], fallback: int) -> int:
     return fallback
 
 
-def _build_diagnosis(profile: ProfileInput, matched_jobs: List[ScoredJob]) -> Diagnosis:
-    today = date.today()
+def _calc_tenure_months(profile: ProfileInput) -> int:
     start_date = _parse_date(profile.start_date)
-    tenure_months = _months_between(start_date, today)
-    months_to_next_year = 12 - (tenure_months % 12) if tenure_months % 12 else 0
-
-    if tenure_months < 12:
-        timing_recommendation = (
-            "현재 근속 1년 미만으로 보여 퇴직금 기준을 채우지 못할 수 있습니다. "
-            "가능하면 1년 시점까지 버티는 전략이 더 유리합니다."
-        )
-    elif 0 < months_to_next_year <= 2:
-        timing_recommendation = (
-            f"다음 근속 구간까지 약 {months_to_next_year}개월 남았습니다. "
-            "성과급이나 평가 반영 시점과 겹친다면 조금 늦추는 편이 손익상 유리합니다."
-        )
-    else:
-        timing_recommendation = (
-            "근속 기준상 즉시 퇴사로 인한 구조적 손실은 크지 않습니다. "
-            "다만 이직 확정 전 퇴사는 현금흐름 리스크를 키울 수 있습니다."
-        )
-
-    current_salary = max(profile.current_salary, 1)
-    top_three = matched_jobs[:3] or matched_jobs
-    average_top_salary = int(
-        mean([_effective_average_salary(job.job, profile.current_salary) for job in top_three])
-    )
-    upside = round(((average_top_salary - current_salary) / current_salary) * 100)
-
-    financial_risk = (
-        f"현재 연봉 {profile.current_salary:,}만원 기준으로, 공백이 3개월만 생겨도 "
-        f"약 {profile.current_salary // 4:,}만원 수준의 소득 공백이 발생할 수 있습니다."
-    )
-    market_signal = (
-        f"실시간 수집 상위 공고 기준 평균 보상은 현재 대비 약 {upside}% 상향 여지가 있습니다. "
-        "즉시 퇴사보다 오퍼 확보 후 이동 전략이 더 안전합니다."
-    )
-    action_summary = (
-        "지금 바로 사직서를 내기보다, 우선 시장 테스트를 돌리고 상위 3개 공고 기준으로 "
-        "면접 가능성을 확인한 뒤 퇴사 타이밍을 정하는 순서를 권장합니다."
-    )
-
-    return Diagnosis(
-        timing_recommendation=timing_recommendation,
-        financial_risk=financial_risk,
-        market_signal=market_signal,
-        action_summary=action_summary,
-    )
+    return _months_between(start_date, date.today())
 
 
 def _score_jobs(profile: ProfileInput, jobs: List[dict[str, Any]]) -> List[ScoredJob]:
@@ -287,67 +244,16 @@ def _build_metrics(profile: ProfileInput, matched_jobs: List[ScoredJob], live_mo
     ]
 
 
-def _build_documents(profile: ProfileInput, diagnosis: Diagnosis, jobs: List[ScoredJob]) -> List[GeneratedDocument]:
-    top_job = jobs[0].job
-    report = f"""# 퇴사 리포트
-
-- 이름: {profile.name}
-- 현재 직무: {profile.current_role}
-- 희망 직무: {profile.desired_role}
-- 현재 연봉: {profile.current_salary:,}만원
-- 희망 연봉: {profile.desired_salary:,}만원
-
-## 핵심 진단
-- 퇴사 타이밍: {diagnosis.timing_recommendation}
-- 재무 리스크: {diagnosis.financial_risk}
-- 시장 신호: {diagnosis.market_signal}
-
-## 추천 액션
-1. {top_job["company"]} 포함 상위 3개 공고에 우선 지원
-2. 이직 확정 전까지 현 직장 재직 상태 유지
-3. 면접 결과에 따라 퇴사 시점 재조정
-
-## 바로 보기
-- 1순위 공고 링크: {top_job["url"]}
-"""
-
-    resignation_letter = f"""제목: 사직 의사 전달
-
-안녕하세요.
-
-개인 커리어 방향과 향후 성장 계획을 충분히 고민한 끝에 퇴사를 결정하게 되었습니다.
-인수인계와 마무리는 최대한 안정적으로 진행하겠습니다.
-
-희망 퇴사 시점은 {profile.preferred_timing} 기준으로 협의하고 싶습니다.
-남은 기간 동안 필요한 문서 정리와 업무 이관에 성실히 협조하겠습니다.
-
-감사합니다.
-{profile.name} 드림
-"""
-
-    checklist = """# 퇴사 체크리스트
-
-1. 연차, 성과급, 퇴직금 반영 시점 확인
-2. 팀 리더와 퇴사 일정 1차 조율
-3. 인수인계 문서 작성
-4. 상위 지원 공고 이력서/자소서 커스터마이징
-5. 현금흐름 기준 최소 3개월 생활비 확보
-"""
-
-    return [
-        GeneratedDocument(title="퇴사 리포트", doc_type="report", content=report),
-        GeneratedDocument(title="사직서 초안", doc_type="letter", content=resignation_letter),
-        GeneratedDocument(title="퇴사 체크리스트", doc_type="checklist", content=checklist),
-    ]
 
 
 def run_analysis(profile: ProfileInput) -> AnalysisResponse:
     jobs, sources, live_mode = fetch_live_jobs(profile)
     matched_jobs = _score_jobs(profile, jobs)
-    diagnosis = _build_diagnosis(profile, matched_jobs)
+    tenure_months = _calc_tenure_months(profile)
+    diagnosis = generate_diagnosis(profile, [j.job for j in matched_jobs[:3]], tenure_months)
     metrics = _build_metrics(profile, matched_jobs, live_mode, sources)
     browser_events = _build_browser_events(profile, len(matched_jobs), matched_jobs, sources, live_mode)
-    documents = _build_documents(profile, diagnosis, matched_jobs)
+    documents = generate_documents(profile, diagnosis, matched_jobs[0].job)
 
     recommended_jobs = [
         RecommendedJob(

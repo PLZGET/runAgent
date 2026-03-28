@@ -62,7 +62,7 @@ def _match_strength(haystack: str, tokens: Iterable[str]) -> int:
 def _normalize_remoteok_job(item: dict[str, Any]) -> dict[str, Any] | None:
     title = str(item.get("position") or "").strip()
     company = str(item.get("company") or "").strip()
-    url = str(item.get("url") or item.get("apply_url") or "").strip()
+    url = str(item.get("url") or item.get("apply_url") or "").strip().replace("remoteOK.com", "remoteok.com")
 
     if not title or not company or not url:
         return None

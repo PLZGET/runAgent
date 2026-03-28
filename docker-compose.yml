@@ -2,6 +2,8 @@ services:
   backend:
     build:
       context: ./backend
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
     ports:
       - "8002:8000"
 
