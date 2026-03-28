@@ -108,6 +108,7 @@ type AgentPrepItem = {
   detail: string;
   console: string[];
   isAi?: boolean;
+  comicAside?: string;
 };
 
 type AgentMode = "briefing" | "launching" | "running" | "replaying" | "ready";
@@ -506,49 +507,153 @@ const INTAKE_STEPS: IntakeStep[] = [
 const AGENT_PREP_STEPS: AgentPrepItem[] = [
   {
     label: "프로필 구조화",
-    detail: "대화에서 연차, 현재 연봉, 목표 역할, 리스크 포인트를 JSON 스냅샷으로 잠그는 중",
-    console: ["draft.lock.profile = true", "resignation_risk_matrix -> seeded", "salary_delta_target -> computed"],
+    detail: "대화에서 연차, 현재 연봉, 목표 역할, 퇴사 리스크 포인트를 JSON 스냅샷으로 잠그는 중",
+    console: [
+      "draft.lock.profile = true",
+      "resignation_risk_matrix -> seeded",
+      "luck.mode -> disabled",
+      "salary_delta_target -> computed",
+    ],
+    comicAside: "퇴사 자금 마련용 기적 회로는 끄고, 경력과 연봉 데이터만 고정합니다.",
   },
   {
     label: "브라우저 세션 부팅",
     detail: "채용 사이트 탐색에 쓸 질의와 필터를 준비하고 브라우저 작업 큐를 여는 중",
-    console: ["browser.session -> warming", "query.role -> normalized", "search.intent -> market_scan"],
+    console: [
+      "browser.session -> warming",
+      "query.role -> normalized",
+      "lotto.predictor -> blocked",
+      "search.intent -> market_scan",
+    ],
+    comicAside: "로또 번호 탭은 규정상 닫혀 있습니다. 채용 피드만 추적합니다.",
   },
   {
     label: "GPT 퇴사 진단 중",
-    detail: "GPT-4o-mini가 퇴사 시점 리스크, 재정 여유, 시장 신호를 종합해 판단 레이어를 생성하는 중",
-    console: ["gpt.model -> gpt-4o-mini", "diagnosis.timing_risk -> analyzing", "diagnosis.financial_buffer -> evaluating"],
+    detail: "GPT-4o-mini가 퇴사 시점 리스크, 재정 여유, 시장 신호를 종합해 현실적인 판단 레이어를 생성하는 중",
+    console: [
+      "gpt.model -> gpt-4o-mini",
+      "diagnosis.timing_risk -> analyzing",
+      "diagnosis.financial_buffer -> evaluating",
+      "one_shot_escape -> rejected",
+    ],
     isAi: true,
+    comicAside: "오늘의 운세는 반영하지 않습니다. 퇴사 타이밍은 생각보다 냉정하게 계산합니다.",
   },
   {
     label: "시장 탐색 큐 정리",
     detail: "공고 수집, 중복 제거, 보상 범위 정규화 로직을 순서대로 실행하는 중",
-    console: ["jobs.collect -> queued", "dedupe.hash -> enabled", "salary_band -> normalized"],
+    console: [
+      "jobs.collect -> queued",
+      "dedupe.hash -> enabled",
+      "salary_band -> normalized",
+      "miracle_fund_scan -> skipped",
+    ],
+    comicAside: "한 방 역전 루트는 제외하고, 실제 지원 가능한 공고만 남깁니다.",
   },
   {
     label: "GPT 공고 매칭 분석",
     detail: "GPT-4o-mini가 수집된 공고와 프로필 스킬셋을 비교해 매칭 점수와 연봉 갭을 계산하는 중",
-    console: ["gpt.model -> gpt-4o-mini", "job_match.scoring -> running", "salary_gap.delta -> computing"],
+    console: [
+      "gpt.model -> gpt-4o-mini",
+      "job_match.scoring -> running",
+      "salary_gap.delta -> computing",
+      "luck.buff -> not_found",
+    ],
     isAi: true,
+    comicAside: "행운 버프는 찾지 못했지만, 상향 이직 확률이 높은 후보는 추렸습니다.",
   },
   {
     label: "사직서 초안 생성 중",
     detail: "GPT-4o-mini가 퇴사 이유와 재직 기간을 바탕으로 사직서 문서 초안을 작성하는 중",
-    console: ["gpt.model -> gpt-4o-mini", "document.resignation_letter -> drafting", "tone.formal_kr -> applied"],
+    console: [
+      "gpt.model -> gpt-4o-mini",
+      "document.resignation_letter -> drafting",
+      "tone.formal_kr -> applied",
+      "dramatic_exit_speech -> suppressed",
+    ],
     isAi: true,
+    comicAside: "사직서는 영화 대사보다 공손한 문장이 더 중요하다는 사실을 다시 확인합니다.",
   },
   {
     label: "이직 체크리스트 생성 중",
     detail: "프로필 조건에 맞는 이직 준비 체크리스트를 GPT-4o-mini가 항목별로 구성하는 중",
-    console: ["gpt.model -> gpt-4o-mini", "checklist.items -> generating", "priority.order -> ranked_by_risk"],
+    console: [
+      "gpt.model -> gpt-4o-mini",
+      "checklist.items -> generating",
+      "priority.order -> ranked_by_risk",
+      "lotto_store_visit -> excluded",
+    ],
     isAi: true,
+    comicAside: "체크리스트에는 복권 판매점 방문 대신 퇴사 통보와 지원 준비가 들어갑니다.",
   },
   {
     label: "리포트 패키지 생성",
     detail: "추천 공고와 퇴사 문서를 한 번에 보여줄 결과 패키지를 조립하는 중",
-    console: ["report.compose -> started", "documents.bundle -> assembling", "delivery.channel -> dashboard"],
+    console: [
+      "report.compose -> started",
+      "documents.bundle -> assembling",
+      "delivery.channel -> dashboard",
+      "luck.summary -> strategy_only",
+    ],
+    comicAside: "당첨 후기가 아니라 현실적인 탈출 패키지로 정리해 전달합니다.",
   },
 ];
+
+function buildComicAside(mode: AgentMode, loadingIndex: number, phase: string) {
+  if (mode === "launching") {
+    return "비밀 메모: 퇴사 자금 마련용 로또 예측기는 규정상 비활성화됐습니다. 대신 현실적인 탈출 경로를 계산합니다.";
+  }
+
+  if (mode === "running") {
+    return AGENT_PREP_STEPS[loadingIndex].comicAside ?? "행운 의존 모드는 끄고, 경력 기반 탐색만 유지합니다.";
+  }
+
+  if (mode === "ready") {
+    return "결론: 한 방 역전은 없었지만, 실제로 움직일 만한 퇴사·이직 경로는 확보했습니다.";
+  }
+
+  if (phase === "market") {
+    return "행운 탭은 닫고 채용 피드만 보고 있습니다.";
+  }
+
+  if (phase === "ranking") {
+    return "오늘의 운세 대신 매칭 점수와 연봉 갭을 우선합니다.";
+  }
+
+  if (phase === "report") {
+    return "이 보고서는 당첨 후기 모음이 아니라 다음 이동 전략서입니다.";
+  }
+
+  return "로또 번호는 못 맞혀도, 퇴사 타이밍과 다음 이동 경로는 계산합니다.";
+}
+
+function buildComicHeadline(mode: AgentMode, loadingIndex: number, phase: string) {
+  if (mode === "launching") {
+    return "행운 의존 모드 차단";
+  }
+
+  if (mode === "running") {
+    return `${AGENT_PREP_STEPS[loadingIndex].label} · 패러디 로그`;
+  }
+
+  if (mode === "ready") {
+    return "행운 대신 전략 보고 완료";
+  }
+
+  if (phase === "market") {
+    return "로또 탭 닫고 시장 탐색 중";
+  }
+
+  if (phase === "ranking") {
+    return "운세 대신 매칭 점수 계산 중";
+  }
+
+  if (phase === "report") {
+    return "당첨 후기 말고 이동 전략서";
+  }
+
+  return "오늘의 비현실 플랜 차단 로그";
+}
 
 function buildPrompt(step: IntakeStep, draft: ProfileDraft) {
   switch (step.key) {
@@ -726,6 +831,8 @@ export default function HomePage() {
   const currentEvent = visibleEvents[visibleEvents.length - 1];
   const currentPhase = currentEvent?.phase ?? "intake";
   const missionStageIndex = currentMissionStage(agentMode, loadingIndex, currentPhase);
+  const missionComicAside = buildComicAside(agentMode, loadingIndex, currentPhase);
+  const missionComicHeadline = buildComicHeadline(agentMode, loadingIndex, currentPhase);
   const inputProgress = Math.round((currentStepIndex / (INTAKE_STEPS.length - 1)) * 100);
   const interviewLocked =
     agentMode === "launching" || agentMode === "running" || agentMode === "replaying";
@@ -831,7 +938,7 @@ export default function HomePage() {
         id: nextMessageIdRef.current++,
         role: "agent",
         title: "작전 완료",
-        content: `시장 탐색 ${scannedJobs}, 예상 연봉 상승 ${salaryUpside} 기준으로 리포트를 정리했습니다. 이제 결과 리포트 페이지로 이동할 수 있습니다.`,
+        content: `시장 탐색 ${scannedJobs}, 예상 연봉 상승 ${salaryUpside} 기준으로 리포트를 정리했습니다. 로또 한 방은 없었지만, 결과 리포트에서 현실적인 다음 수를 바로 확인할 수 있습니다.`,
       },
     ]);
   }, [agentMode, result]);
@@ -1000,7 +1107,7 @@ export default function HomePage() {
     appendMessage("user", "이 조건으로 바로 실행해줘.");
     appendMessage(
       "agent",
-      "좋습니다. 답변 구슬을 회수한 뒤 에이전트를 출격시키고, 실시간 공고 수집 로그를 열겠습니다.",
+      "좋습니다. 답변 구슬을 회수한 뒤 에이전트를 출격시키겠습니다. 로또 예측 모듈은 끄고, 현실적인 퇴사·이직 경로만 추적합니다.",
       "작전 시작"
     );
 
@@ -1083,12 +1190,12 @@ export default function HomePage() {
       ? [
           {
             label: "답변 구슬 회수",
-            detail: `${answeredCount}개의 답변을 에너지 구슬로 변환해 중앙 코어로 모으는 중`,
+            detail: `${answeredCount}개의 답변을 에너지 구슬로 변환해 중앙 코어로 모으는 중. 기적 의존 루트는 분리합니다.`,
             console: [],
           },
           {
             label: "출격 엔진 예열",
-            detail: "토비 NPC를 실시간 탐색 모드로 전환하는 중",
+            detail: "토비 NPC를 실시간 탐색 모드로 전환하는 중. 행운 의존 모드는 꺼둔 상태입니다.",
             console: [],
           },
         ]
@@ -1111,13 +1218,13 @@ export default function HomePage() {
 
   const missionDetail =
     agentMode === "launching"
-      ? "답변 수만큼의 구슬을 회수해 중앙 코어로 결집시키고 있습니다. 집결이 끝나면 토비가 바로 시장 탐색에 출격합니다."
+      ? "답변 수만큼의 구슬을 회수해 중앙 코어로 결집시키고 있습니다. 집결이 끝나면 토비가 퇴사 판단과 시장 탐색을 동시에 시작합니다."
       : agentMode === "running"
       ? AGENT_PREP_STEPS[loadingIndex].detail
       : agentMode === "ready"
-        ? "실시간 공고 수집과 정렬이 끝났습니다. 결과 리포트 페이지에서 추천 공고 링크와 문서 패키지를 확인할 수 있습니다."
+        ? "실시간 공고 수집과 정렬이 끝났습니다. 결과 리포트에서 추천 공고 링크, 퇴사 판단 요약, 문서 패키지를 확인할 수 있습니다."
       : currentEvent?.detail ??
-        "누구나 카드 선택이나 자유 입력으로 조건을 보내면, 그 정보만으로 에이전트가 바로 탐색에 들어갑니다.";
+        "누구나 카드 선택이나 자유 입력으로 조건을 보내면, 그 정보만으로 에이전트가 퇴사 판단과 다음 이동 전략을 함께 계산합니다.";
 
   return (
     <main className="mission-shell">
@@ -1148,9 +1255,18 @@ export default function HomePage() {
             <AgentMascot className="agent-mascot compact" />
             <div>
               <p className="eyebrow">Guide NPC</p>
-              <strong>“입력 블록이 쌓이면 바로 시장 탐색을 시작합니다.”</strong>
-              <p>오른쪽 인터뷰 광장에서 고른 답변을 작업대에서 즉시 조합해 탐색, 정렬, 리포트 순으로 진행합니다.</p>
+              <strong>“로또 번호는 몰라도, 퇴사 타이밍과 상향 이직 루트는 계산합니다.”</strong>
+              <p>오른쪽 인터뷰 광장에서 고른 답변을 작업대에서 즉시 조합해 퇴사 판단, 시장 탐색, 문서 정리 순으로 진행합니다.</p>
             </div>
+          </div>
+
+          <div className="comic-layer-card">
+            <div className="comic-layer-head">
+              <p className="eyebrow">Comic Patch</p>
+              <span className="comic-layer-badge">FUN MODE ON</span>
+            </div>
+            <strong>{missionComicHeadline}</strong>
+            <p>{missionComicAside}</p>
           </div>
 
           <div className="phase-rail">
@@ -1200,7 +1316,7 @@ export default function HomePage() {
               <div className="launch-sequence-copy">
                 <p className="eyebrow">Launch Sequence</p>
                 <h3>답변 구슬 집결 완료</h3>
-                <p>{answeredCount}개의 답변 구슬이 중앙 코어에 모이고 있습니다. 코어가 닫히면 토비가 탐색 모드로 출격합니다.</p>
+                <p>{answeredCount}개의 답변 구슬이 중앙 코어에 모이고 있습니다. 코어가 닫히면 토비가 출격합니다. 참고로 퇴사 자금 마련용 로또 안테나는 규정상 꺼져 있습니다.</p>
               </div>
             </div>
           ) : (
@@ -1222,7 +1338,8 @@ export default function HomePage() {
                     ) : null}
                   </div>
                   <h3>{missionHeadline}</h3>
-                  <p>{missionDetail}</p>
+                  <p className="mission-detail">{missionDetail}</p>
+
                   {agentMode === "running" ? (
                     <p className="elapsed-timer">분석 중... {elapsedSeconds}초</p>
                   ) : null}
@@ -1253,8 +1370,8 @@ export default function HomePage() {
                 <div className="report-entry-card">
                   <div>
                     <p className="eyebrow">Report Gate</p>
-                    <strong>실시간 공고 수집이 끝났습니다.</strong>
-                    <p>추천 공고 링크, 진단 요약, 생성 문서를 모달에서 바로 확인할 수 있습니다.</p>
+                    <strong>현실적인 탈출 경로 정리가 끝났습니다.</strong>
+                    <p>로또 한 방 대신 추천 공고 링크, 퇴사 판단 요약, 생성 문서를 모달에서 바로 확인할 수 있습니다.</p>
                   </div>
                   <button className="primary-button" type="button" onClick={handleOpenReport}>
                     결과 리포트 열기
@@ -1288,7 +1405,7 @@ export default function HomePage() {
             <div>
               <p className="eyebrow">Guest Mode</p>
               <strong>로그인 없이 블록 몇 개만 고르면 바로 시작됩니다.</strong>
-              <p>오른쪽에서 조건 블록을 쌓고, 왼쪽 작업대에서 에이전트가 실제 실행 흐름을 보여줍니다.</p>
+              <p>오른쪽에서 조건 블록을 쌓고, 왼쪽 작업대에서 에이전트가 퇴사 판단과 실행 흐름을 약간의 패러디와 함께 보여줍니다.</p>
             </div>
             <button className="ghost-button" type="button" onClick={resetInterview}>
               인터뷰 다시 시작
@@ -1438,7 +1555,7 @@ export default function HomePage() {
                 >
                   {interviewLocked ? "에이전트 실행 중..." : "에이전트 출격"}
                 </button>
-                <p>입력된 조건으로 실시간 공고 수집, 추천 정렬, 결과 리포트 생성을 순서대로 진행합니다.</p>
+                <p>입력된 조건으로 퇴사 리스크 확인, 실시간 공고 수집, 추천 정렬, 결과 리포트 생성을 순서대로 진행합니다. 행운 의존 루트는 제외합니다.</p>
               </div>
             </div>
           )}

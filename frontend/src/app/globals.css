@@ -890,6 +890,56 @@ button {
   line-height: 1.6;
 }
 
+.comic-layer-card {
+  margin: 18px 24px 0;
+  padding: 16px;
+  border: 3px solid #5e3910;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #ffe59b 0%, #ffc861 48%, #ffb14d 48%, #ff9a43 100%);
+  box-shadow: 0 5px 0 #6a3d11;
+  color: #2d1706;
+}
+
+.comic-layer-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.comic-layer-head .eyebrow {
+  margin: 0;
+  color: rgba(45, 23, 6, 0.72);
+}
+
+.comic-layer-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border: 2px solid rgba(45, 23, 6, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.36);
+  color: #6b2f0c;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-family: "Consolas", "Courier New", monospace;
+}
+
+.comic-layer-card strong {
+  display: block;
+  margin: 10px 0 8px;
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+
+.comic-layer-card p:last-child {
+  margin: 0;
+  color: rgba(45, 23, 6, 0.82);
+  line-height: 1.6;
+}
+
 .launch-sequence {
   display: grid;
   gap: 16px;
@@ -1100,11 +1150,12 @@ button {
   font-size: 1.55rem;
 }
 
-.mission-callout p:last-child {
+.mission-detail {
   margin: 0;
   color: rgba(255, 248, 238, 0.72);
   line-height: 1.65;
 }
+
 
 .mission-console,
 .document-viewer {
