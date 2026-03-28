@@ -212,6 +212,104 @@ function applyProfilePatch(base: ProfileDraft, patch: Partial<ProfileDraft>) {
   return merged;
 }
 
+function buildMockResponse(profile: ProfileDraft): AnalysisResponse {
+  const salaryGap = Math.round(((profile.desired_salary - profile.current_salary) / profile.current_salary) * 100);
+  const topSkill = profile.skills[0] ?? "Java";
+  const secondSkill = profile.skills[1] ?? "Spring Boot";
+
+  return {
+    profile_summary: `${profile.years_experience}년차 ${profile.current_role}로 현재 ${profile.current_salary.toLocaleString("ko-KR")}만원을 받고 있으며, ${profile.resignation_reason} 이유로 이직을 고민 중입니다. ${profile.desired_role} 포지션으로 ${profile.desired_salary.toLocaleString("ko-KR")}만원 이상을 목표로 하고 있습니다. (데모 목업 데이터)`,
+    diagnosis: {
+      timing_recommendation: `현재 ${profile.preferred_timing} 기준으로 움직이는 것이 유리합니다. IT 시장 채용 수요가 회복세이며, ${topSkill} 포지션 수요가 꾸준히 증가하고 있습니다.`,
+      financial_risk: `현재 연봉 ${profile.current_salary.toLocaleString("ko-KR")}만원 기준으로 3~6개월 생활비 준비가 권장됩니다. 목표 연봉 달성 시 연간 ${(profile.desired_salary - profile.current_salary).toLocaleString("ko-KR")}만원 추가 수입이 예상됩니다.`,
+      market_signal: `${profile.desired_role} 포지션 채용 공고가 전분기 대비 18% 증가했습니다. ${topSkill}/${secondSkill} 스택 수요가 특히 강세입니다.`,
+      action_summary: `포트폴리오 정리 후 ${profile.preferred_timing} 내 상위 3개 공고에 지원하는 것을 권장합니다. 희망 연봉 ${salaryGap}% 상향은 현실적인 목표입니다.`,
+    },
+    browser_events: [
+      { phase: "intake", site: "내부", title: "프로필 분석 완료", detail: "연차, 스킬, 연봉 데이터를 구조화했습니다.", elapsed_ms: 320, preview_lines: ["profile.lock = true", `role = ${profile.current_role}`, `salary = ${profile.current_salary}`] },
+      { phase: "market", site: "wanted.co.kr", title: "원티드 공고 수집", detail: `${profile.desired_role} 포지션 공고 42개를 수집했습니다.`, elapsed_ms: 1240, preview_lines: ["site = wanted.co.kr", "jobs.found = 42", "filter.apply -> role, salary"] },
+      { phase: "market", site: "jumpit.com", title: "점핏 공고 수집", detail: `${topSkill} 관련 공고 28개를 추가로 수집했습니다.`, elapsed_ms: 980, preview_lines: ["site = jumpit.com", "jobs.found = 28", `skill_filter = ${topSkill}`] },
+      { phase: "ranking", site: "내부", title: "매칭 점수 계산", detail: "스킬, 연봉, 위치 기반 매칭 점수를 계산했습니다.", elapsed_ms: 560, preview_lines: ["match.algo = skill+salary+location", "dedupe.hash -> enabled", "top_picks = 3"] },
+      { phase: "report", site: "내부", title: "리포트 생성 완료", detail: "추천 공고 3개와 문서 패키지를 조립했습니다.", elapsed_ms: 410, preview_lines: ["report.compose = done", "documents.bundle = 3", "delivery.channel = dashboard"] },
+    ],
+    metrics: [
+      { label: "탐색 공고", value: "70개", detail: "원티드, 점핏, 로켓펀치 등 주요 채용 플랫폼 기준" },
+      { label: "예상 연봉 상승", value: `+${salaryGap}%`, detail: `현재 ${profile.current_salary.toLocaleString("ko-KR")}만원 → 목표 ${profile.desired_salary.toLocaleString("ko-KR")}만원` },
+      { label: "매칭 공고", value: "3개", detail: "스킬과 연봉 조건을 동시에 충족하는 최상위 공고" },
+      { label: "이직 타이밍", value: "적합", detail: `${profile.preferred_timing} 기준 시장 수요와 맞닿아 있음` },
+    ],
+    recommended_jobs: [
+      {
+        company: "카카오페이",
+        title: `${profile.desired_role}`,
+        location: "서울 성동구",
+        source: "wanted.co.kr",
+        url: "https://www.wanted.co.kr",
+        salary_min: profile.desired_salary,
+        salary_max: Math.round(profile.desired_salary * 1.15),
+        rating: 4.1,
+        review_summary: "복지가 좋고 기술 스택이 최신입니다. 코드 리뷰 문화가 잘 정착되어 있습니다.",
+        skills: profile.skills.slice(0, 4),
+        match_score: 92,
+        salary_gap_percent: salaryGap + 5,
+        reasons: [`현재 ${topSkill}/${secondSkill} 스택과 완벽 매칭`, `목표 연봉 ${profile.desired_salary.toLocaleString("ko-KR")}만원 충족`, "성장 환경과 코드 리뷰 문화 우수"],
+      },
+      {
+        company: "토스",
+        title: `${profile.desired_role}`,
+        location: "서울 강남구",
+        source: "toss.im",
+        url: "https://toss.im/career",
+        salary_min: Math.round(profile.desired_salary * 0.95),
+        salary_max: Math.round(profile.desired_salary * 1.2),
+        rating: 4.3,
+        review_summary: "빠른 성장 환경과 높은 엔지니어링 기준. 자율과 책임 문화가 강합니다.",
+        skills: profile.skills.slice(0, 3),
+        match_score: 87,
+        salary_gap_percent: salaryGap + 8,
+        reasons: [`${profile.desired_role} 직책 명확`, "빠른 성장 환경", "높은 엔지니어링 기준"],
+      },
+      {
+        company: "당근마켓",
+        title: `백엔드 엔지니어`,
+        location: "서울 서초구",
+        source: "jumpit.com",
+        url: "https://www.jumpit.co.kr",
+        salary_min: Math.round(profile.desired_salary * 0.9),
+        salary_max: profile.desired_salary,
+        rating: 4.0,
+        review_summary: "수평적인 조직 문화와 자율성이 높습니다. 트래픽 규모가 크고 기술적 도전이 많습니다.",
+        skills: profile.skills.slice(0, 5),
+        match_score: 81,
+        salary_gap_percent: salaryGap - 2,
+        reasons: ["대규모 트래픽 경험 가능", "수평적 조직 문화", `${topSkill} 기술 스택 활용`],
+      },
+    ],
+    documents: [
+      {
+        title: "이직 준비 체크리스트",
+        doc_type: "checklist",
+        content: `=== 이직 준비 체크리스트 (${profile.current_role} → ${profile.desired_role}) ===\n\n[ ] 포트폴리오 GitHub 정리\n    - 주요 프로젝트 README 업데이트\n    - ${topSkill}/${secondSkill} 활용 코드 예시 정리\n\n[ ] 이력서 업데이트\n    - 현재 ${profile.years_experience}년간의 핵심 성과 수치화\n    - ${profile.skills.join(", ")} 스킬 섹션 업데이트\n\n[ ] 공고 지원 준비\n    - 위 3개 추천 공고 세부 JD 분석\n    - 지원서 맞춤화 (각 회사별 강조점 다르게)\n\n[ ] 면접 준비\n    - ${topSkill} 심화 기술 면접 예상 질문 50개\n    - 퇴사 이유 답변 정리: "${profile.resignation_reason}"\n\n[ ] 연봉 협상 준비\n    - 현재 ${profile.current_salary.toLocaleString("ko-KR")}만원 기준 협상 포인트 정리\n    - 목표: ${profile.desired_salary.toLocaleString("ko-KR")}만원 (${salaryGap}% 상향)`,
+      },
+      {
+        title: "자기소개서 초안",
+        doc_type: "cover_letter",
+        content: `=== 자기소개서 초안 ===\n\n저는 ${profile.years_experience}년간 ${profile.current_role}로 근무하며 ${profile.skills.slice(0, 3).join(", ")} 기술을 활용한 서비스 개발 경험을 쌓았습니다.\n\n[성장 배경]\n현재 포지션에서 ${profile.resignation_reason}을 경험하며, 더 큰 기술적 도전과 성장 기회를 모색하게 되었습니다. ${profile.desired_role}로서 대규모 시스템 설계와 팀 기술 방향 수립에 기여하고자 합니다.\n\n[핵심 역량]\n- ${profile.skills[0] ?? "주요 스킬"}: 실무 ${profile.years_experience}년 이상 활용\n- ${profile.skills[1] ?? "보조 스킬"}: 프로덕션 환경 적용 경험\n- 코드 리뷰 및 팀 협업 문화 기여\n\n[지원 동기]\n귀사의 기술 스택과 제 역량이 높은 시너지를 낼 수 있다고 판단하여 지원합니다.\n목표 보상: ${profile.desired_salary.toLocaleString("ko-KR")}만원\n\n※ 이 문서는 AI 목업 데이터 기반 초안입니다. 실제 경험에 맞게 수정하세요.`,
+      },
+      {
+        title: "연봉 협상 스크립트",
+        doc_type: "negotiation",
+        content: `=== 연봉 협상 스크립트 ===\n\n현재 연봉: ${profile.current_salary.toLocaleString("ko-KR")}만원\n목표 연봉: ${profile.desired_salary.toLocaleString("ko-KR")}만원 (${salaryGap}% 상향)\n\n[오퍼 수령 후 협상 시]\n"감사합니다. 제 ${profile.years_experience}년간의 ${topSkill}/${secondSkill} 경험과 현재 시장 벤치마크를 고려했을 때, ${profile.desired_salary.toLocaleString("ko-KR")}만원으로 조정 가능한지 여쭤보고 싶습니다."\n\n[카운터 오퍼 시]\n"현재 받은 오퍼를 존중하지만, 제 기여 가치를 고려해 중간점인 ${Math.round((profile.current_salary + profile.desired_salary) / 2).toLocaleString("ko-KR")}만원은 가능한지 확인 부탁드립니다."\n\n[거절당할 경우]\n"연봉 조정이 어렵다면, 6개월 후 재검토 조건이나 성과 보너스 구조를 논의할 수 있을까요?"\n\n※ 협상은 서면(이메일)으로 진행하면 기록이 남아 유리합니다.`,
+      },
+    ],
+    disclaimers: [
+      "⚠️ 이 결과는 API 연결 실패로 인한 데모 목업 데이터입니다. 실제 서비스 결과와 다를 수 있습니다.",
+      "추천 공고 URL은 실제 공고가 아닌 예시입니다. 실제 지원 전 해당 채용 플랫폼에서 직접 확인하세요.",
+      "연봉 및 시장 데이터는 가상의 추정치입니다. 실제 채용 공고 및 면접 과정에서 확인하시기 바랍니다.",
+    ],
+  };
+}
+
 const INITIAL_PROFILE: ProfileDraft = {
   name: "방문자",
   start_date: buildStartDateFromYears(3),
@@ -891,13 +989,20 @@ export default function HomePage() {
         setAgentMode("replaying");
         setActiveEventIndex(-1);
       });
-    } catch (runError) {
-      const message =
-        runError instanceof Error ? runError.message : "알 수 없는 오류로 작전을 중단했습니다.";
+    } catch {
+      const mockPayload = buildMockResponse(profileDraft);
 
-      setAgentMode("briefing");
-      setError(message);
-      appendMessage("agent", message, "실행 실패");
+      appendMessage(
+        "agent",
+        "서버 연결에 실패했습니다. 데모 목업 데이터로 작전을 계속합니다.",
+        "데모 모드"
+      );
+
+      startTransition(() => {
+        setResult(mockPayload);
+        setAgentMode("replaying");
+        setActiveEventIndex(-1);
+      });
     }
   }
 

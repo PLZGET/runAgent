@@ -3,7 +3,17 @@
     "allow": [
       "Bash(.venv/Scripts/python -c \":*)",
       "Bash(npm install:*)",
-      "Bash(curl -s -X POST http://localhost:8002/api/demo/run -H \"Content-Type: application/json\" -d '{\"\"\"\"name\"\"\"\":\"\"\"\"김철수\"\"\"\",\"\"\"\"start_date\"\"\"\":\"\"\"\"2022-01-01\"\"\"\",\"\"\"\"current_salary\"\"\"\":5000,\"\"\"\"desired_salary\"\"\"\":6500,\"\"\"\"years_experience\"\"\"\":3,\"\"\"\"current_role\"\"\"\":\"\"\"\"백엔드 개발자\"\"\"\",\"\"\"\"desired_role\"\"\"\":\"\"\"\"시니어 백엔드 엔지니어\"\"\"\",\"\"\"\"skills\"\"\"\":[\"\"\"\"Java\"\"\"\",\"\"\"\"Spring Boot\"\"\"\",\"\"\"\"Redis\"\"\"\"],\"\"\"\"resignation_reason\"\"\"\":\"\"\"\"연봉\"\"\"\",\"\"\"\"preferred_timing\"\"\"\":\"\"\"\"3개월 이내\"\"\"\"}')"
+      "Bash(curl -s -X POST http://localhost:8002/api/demo/run -H \"Content-Type: application/json\" -d '{\"\"\"\"name\"\"\"\":\"\"\"\"김철수\"\"\"\",\"\"\"\"start_date\"\"\"\":\"\"\"\"2022-01-01\"\"\"\",\"\"\"\"current_salary\"\"\"\":5000,\"\"\"\"desired_salary\"\"\"\":6500,\"\"\"\"years_experience\"\"\"\":3,\"\"\"\"current_role\"\"\"\":\"\"\"\"백엔드 개발자\"\"\"\",\"\"\"\"desired_role\"\"\"\":\"\"\"\"시니어 백엔드 엔지니어\"\"\"\",\"\"\"\"skills\"\"\"\":[\"\"\"\"Java\"\"\"\",\"\"\"\"Spring Boot\"\"\"\",\"\"\"\"Redis\"\"\"\"],\"\"\"\"resignation_reason\"\"\"\":\"\"\"\"연봉\"\"\"\",\"\"\"\"preferred_timing\"\"\"\":\"\"\"\"3개월 이내\"\"\"\"}')",
+      "Bash(git -C C:/TraeHackerton/codexProject diff HEAD -- frontend/src/app/page.tsx)",
+      "Bash(git -C C:/TraeHackerton/codexProject diff -- frontend/src/app/page.tsx)",
+      "Bash(git -C C:/TraeHackerton/codexProject status --porcelain)",
+      "Bash(git -C C:/TraeHackerton/codexProject stash list)",
+      "Bash(git -C C:/TraeHackerton/codexProject log --oneline -5)",
+      "Bash(git -C C:/TraeHackerton/codexProject diff HEAD --stat)",
+      "Bash(git -C C:/TraeHackerton/codexProject show a447f95 --stat)",
+      "Bash(git -C C:/TraeHackerton/codexProject show a447f95 -- backend/app/engine.py)",
+      "Bash(git -C C:/TraeHackerton/codexProject show cef6667 --stat)",
+      "Bash(git -C C:/TraeHackerton/codexProject show cef6667 -- backend/app/engine.py)"
     ]
   }
 }
